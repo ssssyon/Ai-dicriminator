@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101827">
+<title>TEXT & ENTROPY | HUMAN vs AI</title>
+<style>
+:root{--bg:#0b1220;--panel:#121e30;--panel2:#19283d;--line:#2a3b53;--txt:#f4f7fb;--muted:#a8b6c9;--blue:#4d8dff;--purple:#a78bfa;--green:#34d399;--gold:#fbbf24}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif}body{min-height:100dvh}button,select,input{font:inherit}button{cursor:pointer;color:inherit}.app{max-width:1180px;margin:auto;padding:clamp(14px,3vw,30px);padding-bottom:42px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:clamp(20px,4vw,40px)}.brand{font-size:13px;letter-spacing:.22em;color:#9fb6d7;font-weight:800}.homebtn{border:1px solid var(--line);background:var(--panel);padding:10px 16px;border-radius:14px;font-weight:700}.hero{text-align:center;padding:clamp(22px,6vw,62px) 10px 28px}.eyebrow{color:#8fb4f5;font-size:12px;letter-spacing:.2em;font-weight:800}.hero h1{font-size:clamp(38px,8vw,76px);line-height:1;margin:14px 0 10px;letter-spacing:-.06em}.hero p{color:var(--muted);font-size:clamp(14px,2vw,18px);margin:0}.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,2vw,20px);margin:20px auto;max-width:1000px}.menu-card{min-height:clamp(170px,24vw,270px);border:0;border-radius:24px;padding:clamp(16px,3vw,30px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;box-shadow:0 14px 35px #0003;transition:transform .18s}.menu-card:active{transform:scale(.98)}.menu-card .ico{font-size:clamp(38px,6vw,64px)}.menu-card strong{font-size:clamp(17px,2.5vw,25px);letter-spacing:.02em}.menu-card span:last-child{font-size:14px;opacity:.88}.blue{background:linear-gradient(145deg,#2563eb,#1e40af)}.purple{background:linear-gradient(145deg,#8b5cf6,#5b21b6)}.green{background:linear-gradient(145deg,#059669,#065f46)}.note{text-align:center;color:var(--muted);font-size:12px;margin-top:24px}.view{display:none}.view.active{display:block;animation:fade .2s ease}@keyframes fade{from{opacity:.4;transform:translateY(5px)}to{opacity:1;transform:none}}.pagehead{display:flex;align-items:center;gap:14px;margin:10px 0 24px}.back{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:11px 15px;font-weight:700}.pagehead h2{font-size:clamp(26px,4vw,40px);margin:0}.sub{color:var(--muted);margin:-12px 0 22px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:15px}.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px}.genre{min-height:150px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(145deg,#1b2d46,#111c2d);border:1px solid var(--line);border-radius:20px;padding:22px}.genre .gico{font-size:32px}.genre strong{font-size:23px}.genre small{color:var(--muted)}.textrow{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin:10px 0}.textrow strong{font-size:18px}.textrow small{display:block;color:var(--muted);margin-top:5px}.pill{font-size:12px;border-radius:999px;padding:6px 10px;background:#263b57;color:#c7dcff;white-space:nowrap}.reading{font-size:clamp(17px,2.2vw,22px);line-height:1.9;white-space:pre-line;color:#e7edf7}.meta{color:var(--muted);font-size:13px}.action{border:0;border-radius:14px;padding:14px 20px;background:var(--blue);font-weight:800;color:white}.action.secondary{background:var(--panel2);border:1px solid var(--line)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.quizcols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.quizbox{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:clamp(16px,3vw,26px);display:flex;flex-direction:column;gap:15px}.letter{font-size:42px;font-weight:900}.sample{color:#dce6f5;line-height:1.8;min-height:115px}.quizbox button{margin-top:auto}.result{margin-top:20px;padding:22px;border-radius:18px;background:#142b29;border:1px solid #236b58}.result h3{margin:0 0 8px;font-size:26px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.stat{background:#0f1b2b;border:1px solid var(--line);border-radius:14px;padding:14px}.stat b{display:block;font-size:23px;margin-top:5px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tab{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:10px 16px;color:var(--muted)}.tab.active{background:#244779;border-color:#4d8dff;color:#fff}.chartwrap{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:18px;margin-top:14px}.chartwrap canvas{width:100%;height:300px;display:block}.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.controls select,.controls input{background:#0d1828;color:var(--txt);border:1px solid var(--line);border-radius:12px;padding:11px;max-width:100%}.upload{border:1px dashed #57708e;border-radius:18px;padding:18px;margin:15px 0;background:#101b2b}.upload input{max-width:100%}.hint{font-size:12px;color:var(--muted);line-height:1.6}.tablewrap{overflow:auto;margin-top:15px}table{border-collapse:collapse;width:100%;min-width:500px;font-size:13px}th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left}th{color:#b9cbe2;background:#17263a}.footer{color:#72839b;text-align:center;font-size:11px;margin-top:40px}
+@media(max-width:650px){.menu{grid-template-columns:1fr;max-width:440px}.menu-card{min-height:125px;flex-direction:row;justify-content:flex-start;text-align:left}.menu-card .ico{width:58px}.menu-card strong{font-size:19px}.menu-card span:last-child{margin-left:auto}.quizcols{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.top{margin-bottom:8px}.hero{padding-top:24px}.pagehead{align-items:flex-start}.pagehead h2{font-size:27px}.chartwrap canvas{height:240px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top"><div class="brand">RESEARCH EXHIBITION · 2026</div><button class="homebtn" onclick="goHome()">⌂ 처음으로</button></header>
+  <main>
+    <section id="home" class="view active">
+      <div class="hero"><div class="eyebrow">A STUDY OF LANGUAGE</div><h1>TEXT & ENTROPY</h1><p>인간과 AI의 언어, 무엇이 다를까?</p></div>
+      <div class="menu">
+        <button class="menu-card blue" onclick="show('human')"><span class="ico">📖</span><strong>HUMAN'S TEXT</strong><span>인간의 글 읽기 →</span></button>
+        <button class="menu-card purple" onclick="show('quiz')"><span class="ico">🧠</span><strong>WHICH IS AI?</strong><span>AI 글 맞히기 →</span></button>
+        <button class="menu-card green" onclick="show('research')"><span class="ico">📊</span><strong>RESEARCH</strong><span>연구 결과 보기 →</span></button>
+      </div>
+      <div class="note">글을 읽고 · 직접 판단하고 · 데이터로 확인하기</div>
+    </section>
+
+    <section id="human" class="view">
+      <div class="pagehead"><button class="back" onclick="goHome()">←</button><h2>HUMAN'S TEXT</h2></div>
+      <p class="sub">읽고 싶은 장르를 선택하세요.</p>
+      <div class="grid">
+        <button class="genre" onclick="openGenre('시')"><span class="gico">🌙</span><strong>시</strong><small>POETRY · 30편 예정</small></button>
+        <button class="genre" onclick="openGenre('소설')"><span class="gico">📚</span><strong>소설</strong><small>NOVEL · 30편 예정</small></button>
+        <button class="genre" onclick="openGenre('설명문')"><span class="gico">🔎</span><strong>설명문</strong><small>EXPOSITORY · 60편 예정</small></button>
+        <button class="genre" onclick="openGenre('논설문')"><span class="gico">✍️</span><strong>논설문</strong><small>ARGUMENTATIVE · 60편 예정</small></button>
+      </div>
+      <div class="upload"><b>내 텍스트 자료 불러오기</b><p class="hint">연구용 CSV를 선택하면 장르와 텍스트 열을 읽어 목록에 반영합니다. 기본 지원 열: genre, text, id (또는 title).</p><input type="file" accept=".csv,text/csv" onchange="loadHumanCSV(event)"><div id="humanUploadStatus" class="hint"></div></div>
+    </section>
+
+    <section id="texts" class="view">
+      <div class="pagehead"><button class="back" onclick="show('human')">←</button><h2 id="genreTitle">시</h2></div>
+      <p class="sub">텍스트를 선택해 전문을 읽어보세요.</p><div id="textList"></div>
+    </section>
+
+    <section id="reader" class="view">
+      <div class="pagehead"><button class="back" onclick="show('texts')">←</button><h2 id="readerTitle">텍스트</h2></div>
+      <div class="card"><div class="meta" id="readerMeta"></div><div class="reading" id="readerBody" style="margin-top:18px"></div></div>
+      <div class="actions"><button class="action" onclick="showTextAnalysis()">이 글의 분석 보기</button><button class="action secondary" onclick="show('texts')">목록으로</button></div>
+      <div id="readerAnalysis"></div>
+    </section>
+
+    <section id="quiz" class="view">
+      <div class="pagehead"><button class="back" onclick="goHome()">←</button><h2>WHICH IS AI?</h2></div>
+      <p class="sub">두 글 중 AI가 작성한 글을 골라보세요.</p>
+      <div class="quizcols">
+        <article class="quizbox"><div class="letter">A</div><div class="sample" id="quizA"></div><button class="action secondary" onclick="answerQuiz('A')">A 선택</button></article>
+        <article class="quizbox"><div class="letter">B</div><div class="sample" id="quizB"></div><button class="action secondary" onclick="answerQuiz('B')">B 선택</button></article>
+      </div>
+      <div id="quizResult"></div>
+      <div class="actions"><button class="action" onclick="newQuiz()">다른 문제 풀기 ↻</button></div>
+      <p class="hint">현재 기본 문제는 체험용 예시입니다. 실제 인간·AI 텍스트를 연결하기 전에는 연구 결과나 정답 통계로 사용하지 마세요.</p>
+    </section>
+
+    <section id="research" class="view">
+      <div class="pagehead"><button class="back" onclick="goHome()">←</button><h2>RESEARCH</h2></div>
+      <p class="sub">분석 결과 CSV를 불러와 그래프로 확인하세요.</p>
+      <div class="upload"><b>분석 결과 CSV 불러오기</b><p class="hint">예: trigram_group_summary.csv, trigram_window_entropy_results.csv, trigram_kld_results.csv 등. 파일은 이 브라우저 안에서만 읽습니다.</p><input id="researchFile" type="file" accept=".csv,text/csv" onchange="loadResearchCSV(event)"><div id="researchStatus" class="hint">아직 파일을 불러오지 않았습니다.</div></div>
+      <div class="tabs">
+        <button class="tab active" onclick="selectMetric('entropy',this)">Entropy</button>
+        <button class="tab" onclick="selectMetric('surprisal',this)">Surprisal</button>
+        <button class="tab" onclick="selectMetric('burst',this)">Burstiness</button>
+        <button class="tab" onclick="selectMetric('kld',this)">KLD</button>
+      </div>
+      <div class="chartwrap">
+        <div class="controls"><label class="hint" for="xcol">가로축</label><select id="xcol" onchange="drawResearch()"></select><label class="hint" for="ycol">세로축</label><select id="ycol" onchange="drawResearch()"></select></div>
+        <canvas id="researchChart" width="1000" height="420" aria-label="연구 결과 그래프"></canvas>
+        <div id="chartCaption" class="hint">예시 화면입니다. CSV를 불러오면 해당 파일의 열을 선택해 그래프로 표시합니다.</div>
+      </div>
+      <div class="tablewrap" id="dataTable"></div>
+    </section>
+  </main>
+  <div class="footer">TEXT & ENTROPY · HUMAN LANGUAGE vs AI LANGUAGE</div>
+</div>
+<script>
+const demoTexts={
+'시':[
+{title:'시간의 흔적',body:'창가에 내려앉은 저녁빛\\n하루의 끝을 천천히 접는다.\\n말없이 지나간 순간들은\\n희미한 온기로 남아 있다.'},
+{title:'비 오는 날',body:'빗방울이 유리창을 두드리고\\n거리의 불빛은 길게 번진다.\\n잠시 멈춘 발걸음 사이로\\n작은 계절 하나가 지나간다.'}],
+'소설':[{title:'낯선 역',body:'기차가 멈추자 플랫폼에는 잠깐의 정적이 흘렀다. 그는 가방 손잡이를 고쳐 잡고 낯선 역의 이름을 다시 읽었다. 오래전 떠났던 곳과 닮았지만, 어느 것도 완전히 같지는 않았다.'}],
+'설명문':[{title:'언어 모델의 원리',body:'언어 모델은 앞에 등장한 단어의 문맥을 바탕으로 다음에 등장할 단어의 확률을 계산한다. 트라이그램 모델은 직전 두 단어를 문맥으로 사용해 다음 단어의 확률 분포를 추정한다.'}],
+'논설문':[{title:'기술과 글쓰기',body:'생성형 인공지능의 활용이 늘어날수록 글쓰기에서 인간의 역할을 다시 생각할 필요가 있다. 기술의 편리함을 인정하되, 자료를 검토하고 자신의 생각을 구성하는 과정은 여전히 중요하다.'}]
+};
+let humanData=null,currentGenre='시',currentText=null,researchRows=[],researchCols=[],metric='entropy',quizIndex=0,quizAnswered=false;
+const quizItems=[
+{a:'저녁의 바람은 창문을 지나 방 안으로 스며들었다. 거리의 소음이 잦아들자 오래된 기억 하나가 조용히 떠올랐다.',b:'인간은 언어를 사용하여 생각과 감정을 전달한다. 언어의 구조와 사용 양상을 분석하면 의사소통의 특징을 이해할 수 있다.',answer:'B',why:'이 문제는 체험용으로 만든 가상 예시입니다. 문체만으로 작성 주체를 확정할 수는 없습니다.'},
+{a:'빛은 물체의 표면에서 반사되어 눈에 들어오며, 우리는 이 과정을 통해 주변 사물을 인식한다.',b:'창문 너머 빛이 천천히 기울었다. 사라지는 햇살을 바라보며 오늘 하루도 어딘가에 놓아두었다.',answer:'A',why:'이 문제는 체험용 예시입니다. 실제 연구에서는 동일 장르·주제의 글을 비교해야 합니다.'}
+];
+function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+function goHome(){show('home')}
+function openGenre(g){currentGenre=g;document.getElementById('genreTitle').textContent=g;renderTextList();show('texts')}
+function renderTextList(){let items=(humanData||demoTexts)[currentGenre]||[];let el=document.getElementById('textList');el.innerHTML='';if(!items.length){el.innerHTML='<div class="card">이 장르의 텍스트가 없습니다. CSV를 불러와 주세요.</div>';return;}items.forEach((t,i)=>{let b=document.createElement('button');b.className='textrow';b.innerHTML='<span><strong></strong><small></small></span><span class="pill">읽기 →</span>';b.querySelector('strong').textContent=t.title||t.id||('텍스트 '+(i+1));b.querySelector('small').textContent=currentGenre+' · '+(t.source||'인간 텍스트');b.onclick=()=>openText(t);el.appendChild(b);});}
+function openText(t){currentText=t;document.getElementById('readerTitle').textContent=t.title||'텍스트';document.getElementById('readerMeta').textContent=(t.genre||currentGenre)+' · '+(t.source||'텍스트');document.getElementById('readerBody').textContent=t.body||t.text||'';document.getElementById('readerAnalysis').innerHTML='';show('reader')}
+function showTextAnalysis(){let box=document.getElementById('readerAnalysis');box.innerHTML='<div class="card" style="margin-top:16px"><b>연구 분석</b><p class="hint">이 글에 해당하는 문서별 분석 결과 CSV를 불러오면 실제 엔트로피와 서프라이절 수치를 연결할 수 있습니다. 현재는 분석 데이터가 연결되지 않았습니다.</p><button class="action secondary" onclick="show(\\'research\\')">RESEARCH로 이동</button></div>';}
+function loadHumanCSV(e){let f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{let rows=parseCSV(r.result);let h=rows[0]||[];let gi=findCol(h,['genre','장르']),ti=findCol(h,['text','body','content','본문','텍스트']),ii=findCol(h,['id','title','제목']);if(gi<0||ti<0)throw Error('genre와 text(또는 body/content) 열을 찾지 못했습니다.');humanData={};rows.slice(1).forEach(row=>{let g=row[gi]||'기타';(humanData[g]??=[]).push({title:ii>=0?row[ii]:'텍스트 '+(humanData[g].length+1),genre:g,body:row[ti],source:'CSV'});});document.getElementById('humanUploadStatus').textContent='불러오기 완료: '+rows.length-1+'개 텍스트';}catch(err){document.getElementById('humanUploadStatus').textContent='불러오기 실패: '+err.message;}};r.readAsText(f,'UTF-8');}
+function newQuiz(){quizIndex=(quizIndex+1)%quizItems.length;quizAnswered=false;document.getElementById('quizA').textContent=quizItems[quizIndex].a;document.getElementById('quizB').textContent=quizItems[quizIndex].b;document.getElementById('quizResult').innerHTML='';}
+function answerQuiz(choice){if(quizAnswered)return;quizAnswered=true;let q=quizItems[quizIndex],correct=choice===q.answer;let d=document.createElement('div');d.className='result';d.innerHTML='<h3>'+(correct?'선택했어요!':'선택 완료')+'</h3><p><b>예시 정답: '+q.answer+'</b></p><p>'+q.why+'</p><p class="hint">실제 연구 데이터가 연결되면 인간·AI 글의 출처와 분석 결과를 함께 공개하도록 확장할 수 있습니다.</p>';document.getElementById('quizResult').replaceChildren(d);}
+function parseCSV(s){let rows=[],row=[],v='',q=false;for(let i=0;i<s.length;i++){let c=s[i];if(c==='"'&&q&&s[i+1]==='"'){v+='"';i++;}else if(c==='"'){q=!q;}else if(c===','&&!q){row.push(v);v='';}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&s[i+1]==='\n')i++;row.push(v);if(row.some(x=>x!==''))rows.push(row);row=[];v='';}else v+=c;}row.push(v);if(row.some(x=>x!==''))rows.push(row);return rows;}
+function findCol(headers,names){return headers.findIndex(h=>names.includes(String(h).trim().toLowerCase()));}
+function loadResearchCSV(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let all=parseCSV(r.result);researchCols=all[0].map(x=>String(x).trim());researchRows=all.slice(1).filter(x=>x.length);if(!researchCols.length)throw Error('CSV 헤더가 없습니다.');let xsel=document.getElementById('xcol'),ysel=document.getElementById('ycol');xsel.innerHTML='';ysel.innerHTML='';researchCols.forEach((c,i)=>{xsel.add(new Option(c,i));ysel.add(new Option(c,i));});let numeric=researchCols.findIndex((c,i)=>researchRows.some(row=>!isNaN(Number(row[i]))&&row[i]!==''));ysel.value=numeric>=0?numeric:0;xsel.value=0;document.getElementById('researchStatus').textContent=f.name+' · '+researchRows.length+'행 불러오기 완료';drawResearch();}catch(err){document.getElementById('researchStatus').textContent='오류: '+err.message;}};r.readAsText(f,'UTF-8');}
+function selectMetric(m,btn){metric=m;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));btn.classList.add('active');if(researchRows.length)drawResearch();else drawDemo();}
+function drawResearch(){if(!researchRows.length){drawDemo();return;}let xi=Number(document.getElementById('xcol').value),yi=Number(document.getElementById('ycol').value);let pts=researchRows.map((r,i)=>({x:r[xi]||String(i+1),y:Number(String(r[yi]??'').replace(/,/g,''))})).filter(p=>Number.isFinite(p.y));drawChart(pts,researchCols[yi]||'값');renderTable();}
+function drawDemo(){let names=['Human','ChatGPT','Gemini','Claude'];let vals=metric==='entropy'?[3.8,4.1,4.0,3.9]:metric==='surprisal'?[4.0,4.3,4.2,4.1]:metric==='burst'?[.31,.38,.35,.33]:[0,.12,.10,.09];drawChart(names.map((x,i)=>({x,y:vals[i]})),metric.toUpperCase());document.getElementById('chartCaption').textContent='화면 예시용 임의 수치입니다. 실제 연구 결과가 아닙니다. 분석 CSV를 업로드하면 실제 값으로 교체됩니다.';document.getElementById('dataTable').innerHTML='';}
+function drawChart(points,label){let c=document.getElementById('researchChart'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#121e30';ctx.fillRect(0,0,w,h);let vals=points.map(p=>p.y),min=Math.min(0,...vals),max=Math.max(...vals);if(max===min)max=min+1;let left=70,right=25,top=25,bottom=65,ph=h-top-bottom,pw=w-left-right;ctx.strokeStyle='#34475f';ctx.lineWidth=1;ctx.font='16px sans-serif';ctx.fillStyle='#a8b6c9';for(let i=0;i<=4;i++){let y=top+ph*i/4;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(w-right,y);ctx.stroke();ctx.fillText((max-(max-min)*i/4).toFixed(2),8,y+5);}let n=Math.min(points.length,24);for(let i=0;i<n;i++){let p=points[i],x=left+(n===1?pw/2:pw*i/(n-1)),y=top+ph-(p.y-min)/(max-min)*ph;ctx.fillStyle='#60a5fa';ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.fill();ctx.fillStyle='#dbeafe';ctx.font='13px sans-serif';let txt=String(p.x);ctx.save();ctx.translate(x,bottom+top+12);ctx.rotate(-.35);ctx.fillText(txt.slice(0,15),0,0);ctx.restore();}ctx.fillStyle='#e7edf7';ctx.font='bold 17px sans-serif';ctx.fillText(label,left,18);document.getElementById('chartCaption').textContent=points.length+'개 데이터 포인트 표시 · 숫자가 아닌 행은 그래프에서 제외했습니다.';}
+function renderTable(){let rows=researchRows.slice(0,8);let html='<table><thead><tr>'+researchCols.map(c=>'<th>'+escapeHTML(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+researchCols.map((c,i)=>'<td>'+escapeHTML(r[i]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';document.getElementById('dataTable').innerHTML=html;}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+newQuiz();drawDemo();
+</script>
+</body>
+</html>
