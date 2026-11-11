@@ -138,7 +138,7 @@ button{cursor:pointer;color:inherit}
 .textrow small{display:block;color:var(--muted);margin-top:4px;font-size:14px}
 
 .pill{font-size:13px;border-radius:8px;padding:6px 14px;background:var(--card-bg);color:var(--sage-green);font-weight:700;white-space:nowrap}
-.reading{font-size:clamp(19px,2.3vw,23px);line-height:2;white-space:pre-line;color:#2c3e50;font-weight:450}
+.ai-reading{white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;tab-size:4} #modelTabs .tab:disabled{opacity:.45;cursor:not-allowed} .reading{font-size:clamp(19px,2.3vw,23px);line-height:1.75;white-space:pre-wrap;color:#2c3e50;font-weight:450}
 .meta{color:var(--muted);font-size:14px;font-weight:600}
 
 .action{border:0;border-radius:12px;padding:14px 22px;background:var(--sage-green);font-weight:800;color:white;font-size:16px;box-shadow:0 4px 12px rgba(77,122,94,0.25)}
@@ -256,8 +256,8 @@ th{color:var(--slate-navy);background:var(--panel2);font-weight:700}
       <div class="menu">
         <button class="menu-card blue-theme" onclick="show('human')">
           <span class="card-tag">READING</span>
-          <strong>HUMAN'S TEXT</strong>
-          <span>인간의 글 읽어보기 →</span>
+          <strong>AI TEXT LIBRARY</strong>
+          <span>AI가 쓴 글 읽어보기 →</span>
         </button>
         <button class="menu-card purple-theme" onclick="show('quiz')">
           <span class="card-tag">TEST</span>
@@ -274,25 +274,20 @@ th{color:var(--slate-navy);background:var(--panel2);font-weight:700}
     </section>
 
     <section id="human" class="view">
-      <div class="pagehead"><button class="back" onclick="goHome()">←</button><h2>HUMAN'S TEXT</h2></div>
-      <p class="sub">읽고 싶은 장르를 선택하세요.</p>
+      <div class="pagehead"><button class="back" onclick="goHome()">←</button><h2>AI TEXT LIBRARY</h2></div>
+      <p class="sub">읽고 싶은 장르를 선택하세요. 같은 주제의 AI 모델별 글을 읽을 수 있습니다.</p>
       <div class="grid">
-        <button class="genre" onclick="openGenre('시')"><strong>시</strong><small>POETRY · 30편 예정</small></button>
-        <button class="genre" onclick="openGenre('소설')"><strong>소설</strong><small>NOVEL · 30편 예정</small></button>
-        <button class="genre" onclick="openGenre('설명문')"><strong>설명문</strong><small>EXPOSITORY · 60편 예정</small></button>
-        <button class="genre" onclick="openGenre('논설문')"><strong>논설문</strong><small>ARGUMENTATIVE · 60편 예정</small></button>
+        <button class="genre" onclick="openGenre('시')"><strong>시</strong><small>POETRY · 30개 주제</small></button>
+        <button class="genre" onclick="openGenre('소설')"><strong>소설</strong><small>NOVEL · 30개 주제</small></button>
+        <button class="genre" onclick="openGenre('설명문')"><strong>설명문</strong><small>EXPOSITORY · 60개 주제</small></button>
+        <button class="genre" onclick="openGenre('논설문')"><strong>논설문</strong><small>ARGUMENTATIVE · 60개 주제</small></button>
       </div>
-      <div class="upload">
-        <b>내 텍스트 자료 불러오기</b>
-        <p class="hint">연구용 CSV를 선택하면 장르와 텍스트 열을 읽어 목록에 반영합니다. 기본 지원 열: genre, text, id (또는 title).</p>
-        <input type="file" accept=".csv,text/csv" onchange="loadHumanCSV(event)">
-        <div id="humanUploadStatus" class="hint"></div>
-      </div>
+      <p class="hint">등록된 글은 AI가 작성한 원문입니다. 제목을 선택한 다음 모델을 전환해 읽을 수 있습니다.</p>
     </section>
 
     <section id="texts" class="view">
       <div class="pagehead"><button class="back" onclick="show('human')">←</button><h2 id="genreTitle">시</h2></div>
-      <p class="sub">텍스트를 선택해 전문을 읽어보세요.</p>
+      <p class="sub">주제 제목을 선택해 AI 글 전문을 읽어보세요.</p>
       <div id="textList"></div>
     </section>
 
@@ -300,7 +295,8 @@ th{color:var(--slate-navy);background:var(--panel2);font-weight:700}
       <div class="pagehead"><button class="back" onclick="show('texts')">←</button><h2 id="readerTitle">텍스트</h2></div>
       <div class="card">
         <div class="meta" id="readerMeta"></div>
-        <div class="reading" id="readerBody" style="margin-top:18px"></div>
+        <div id="modelTabs" class="tabs" role="group" aria-label="AI 모델 선택"></div>
+        <div class="reading ai-reading" id="readerBody" style="margin-top:18px"></div>
       </div>
       <div class="actions">
         <button class="action" onclick="showTextAnalysis()">이 글의 분석 보기</button>
@@ -350,21 +346,16 @@ th{color:var(--slate-navy);background:var(--panel2);font-weight:700}
   
   <div class="footer">
     TEXT & ENTROPY · HUMAN LANGUAGE vs AI LANGUAGE<br>
+    <b>창원과학고등학교</b><br>
     <b>출품자: 16기 양서연, 정여명, 최영준</b>
   </div>
 </div>
 
 <script>
-const demoTexts={
-'시':[
-{title:'시간의 흔적',body:'창가에 내려앉은 저녁빛\n하루의 끝을 천천히 접는다.\n말없이 지나간 순간들은\n희미한 온기로 남아 있다.'},
-{title:'비 오는 날',body:'빗방울이 유리창을 두드리고\n거리의 불빛은 길게 번진다.\n잠시 멈춘 발걸음 사이로\n작은 계절 하나가 지나간다.'}],
-'소설':[{title:'낯선 역',body:'기차가 멈추자 플랫폼에는 잠깐의 정적이 흘렀다. 그는 가방 손잡이를 고쳐 잡고 낯선 역의 이름을 다시 읽었다. 오래전 떠났던 곳과 닮았지만, 어느 것도 완전히 같지는 않았다.'}],
-'설명문':[{title:'언어 모델의 원리',body:'언어 모델은 앞에 등장한 단어의 문맥을 바탕으로 다음에 등장할 단어의 확률을 계산한다. 트라이그램 모델은 직전 두 단어를 문맥으로 사용해 다음 단어의 확률 분포를 추정한다.'}],
-'논설문':[{title:'기술과 글쓰기',body:'생성형 인공지능의 활용이 늘어날수록 글쓰기에서 인간의 역할을 다시 생각할 필요가 있다. 기술의 편리함을 인정하되, 자료를 검토하고 자신의 생각을 구성하는 과정은 여전히 중요하다.'}]
-};
-
-let humanData=null,currentGenre='시',currentText=null,researchRows=[],researchCols=[],metric='entropy',quizIndex=0,quizAnswered=false;
+let currentGenre='시',currentText=null,researchRows=[],researchCols=[],metric='entropy',quizIndex=0,quizAnswered=false;
+const genreFiles={'시':'poetry.json','소설':'novel.json','설명문':'expository.json','논설문':'argumentative.json'};
+const modelOrder=['ChatGPT','Claude','Gemini'];
+const libraryCache={};
 const quizItems=[
 {a:'저녁의 바람은 창문을 지나 방 안으로 스며들었다. 거리의 소음이 잦아들자 오래된 기억 하나가 조용히 떠올랐다.',b:'인간은 언어를 사용하여 생각과 감정을 전달한다. 언어의 구조와 사용 양상을 분석하면 의사소통의 특징을 이해할 수 있다.',answer:'B',why:'이 문제는 체험용으로 만든 가상 예시입니다. 문체만으로 작성 주체를 확정할 수는 없습니다.'},
 {a:'빛은 물체의 표면에서 반사되어 눈에 들어오며, 우리는 이 과정을 통해 주변 사물을 인식한다.',b:'창문 너머 빛이 천천히 기울었다. 사라지는 햇살을 바라보며 오늘 하루도 어딘가에 놓아두었다.',answer:'A',why:'이 문제는 체험용 예시입니다. 실제 연구에서는 동일 장르·주제의 글을 비교해야 합니다.'}
@@ -372,59 +363,98 @@ const quizItems=[
 
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
 function goHome(){show('home')}
-function openGenre(g){currentGenre=g;document.getElementById('genreTitle').textContent=g;renderTextList();show('texts')}
-
+async function openGenre(g){
+  currentGenre=g;
+  document.getElementById('genreTitle').textContent=g;
+  show('texts');
+  const list=document.getElementById('textList');
+  list.textContent='글 목록을 불러오는 중...';
+  try{
+    if(!libraryCache[g]){
+      const res=await fetch('./'+genreFiles[g],{cache:'no-cache'});
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      libraryCache[g]=await res.json();
+    }
+    // Do not show a stale result if a user switched genres during loading.
+    if(currentGenre===g)renderTextList();
+  }catch(err){
+    if(currentGenre===g)list.textContent='글 목록을 불러오지 못했습니다. data 폴더와 JSON 파일도 GitHub에 함께 업로드했는지 확인하세요. ('+err.message+')';
+  }
+}
 function renderTextList(){
-  let items=(humanData||demoTexts)[currentGenre]||[];
-  let el=document.getElementById('textList');
-  el.innerHTML='';
-  if(!items.length){el.innerHTML='<div class="card">이 장르의 텍스트가 없습니다. CSV를 불러와 주세요.</div>';return;}
-  items.forEach((t,i)=>{
-    let b=document.createElement('button');
-    b.className='textrow';
+  const items=libraryCache[currentGenre]||[];
+  const list=document.getElementById('textList');list.replaceChildren();
+  if(!items.length){list.textContent='해당 장르에 등록된 글이 없습니다.';return;}
+  items.forEach((item,i)=>{
+    const b=document.createElement('button');b.className='textrow';
     b.innerHTML='<span><strong></strong><small></small></span><span class="pill">읽기 →</span>';
-    b.querySelector('strong').textContent=t.title||t.id||('텍스트 '+(i+1));
-    b.querySelector('small').textContent=currentGenre+' · '+(t.source||'인간 텍스트');
-    b.onclick=()=>openText(t);
-    el.appendChild(b);
+    b.querySelector('strong').textContent=item.title;
+    b.querySelector('small').textContent=(i+1)+' / '+items.length+' · '+modelOrder.filter(m=>item.texts[m]).join(' · ');
+    b.onclick=()=>openText(item);list.appendChild(b);
   });
 }
-
-function openText(t){
-  currentText=t;
-  document.getElementById('readerTitle').textContent=t.title||'텍스트';
-  document.getElementById('readerMeta').textContent=(t.genre||currentGenre)+' · '+(t.source||'텍스트');
-  document.getElementById('readerBody').textContent=t.body||t.text||'';
-  document.getElementById('readerAnalysis').innerHTML='';
-  show('reader');
+function openText(item){
+  currentText=item;
+  document.getElementById('readerTitle').textContent=item.title;
+  document.getElementById('readerAnalysis').replaceChildren();
+  setReaderModel(modelOrder.find(m=>item.texts[m]));show('reader');
+}
+// Display conversion only: data/*.json contains the original text, unchanged.
+function stripMarkdownLine(line){
+  // Markdown heading, quotes, emphasis, and link markup; never render source as HTML.
+  line=line.replace(/^ {0,3}#{1,6}\s+/,'').replace(/^\s*>\s?/,'');
+  line=line.replace(/!\[([^\]]*)\]\(([^)]+)\)/g,'$1 ($2)');
+  line=line.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'$1 ($2)');
+  line=line.replace(/\*\*\*([^*\n]+)\*\*\*/g,'$1').replace(/___([^_\n]+)___/g,'$1');
+  line=line.replace(/\*\*([^*\n]+)\*\*/g,'$1').replace(/__([^_\n]+)__/g,'$1');
+  line=line.replace(/(?<!\w)\*([^*\n]+)\*(?!\w)/g,'$1');
+  line=line.replace(/(?<!\w)_([^_\n]+)_(?!\w)/g,'$1');
+  line=line.replace(/`([^`\n]+)`/g,'$1');
+  line=line.replace(/\\([\\`*_{}\[\]()#+.!>~-])/g,'$1');
+  return line;
+}
+function displayText(raw){
+  const lines=String(raw||'').replace(/\r\n?/g,'\n').replace(/^\uFEFF/,'').split('\n');
+  const result=[];
+  for(const line of lines){
+    if(/^\s*```/.test(line))continue;
+    if(/^\s*(?:---|\*\*\*|___)\s*$/.test(line))continue;
+    result.push(stripMarkdownLine(line));
+  }
+  // Reduce consecutive empty lines without joining meaningful lines or paragraphs.
+  return result.join('\n').replace(/\n[ \t]*\n(?:[ \t]*\n)+/g,'\n\n').trim();
+}
+function compareTitle(s){return displayText(s).replace(/^\d+\.\s*/,'').replace(/\s+/g,' ').toLowerCase().trim();}
+function displayWork(raw, topic){
+  const lines=displayText(raw).split('\n');
+  // In poetry an initial '1. Beer' identifies the shared reference topic, not the new poem's title.
+  if(lines.length>1 && compareTitle(lines[0])===compareTitle(topic)){
+    lines.shift();while(lines.length&&!lines[0].trim())lines.shift();
+  }
+  // Keep the actual first heading/text line as the displayed title.
+  const title=lines.find(x=>x.trim())||topic;
+  return {title,body:lines.join('\n')};
+}
+function setReaderModel(model){
+  if(!currentText||!model)return;
+  const tabs=document.getElementById('modelTabs');tabs.replaceChildren();
+  modelOrder.forEach(name=>{
+    const present=Boolean(currentText.texts[name]);
+    const b=document.createElement('button');b.className='tab'+(name===model?' active':'');
+    b.textContent=name+(present?'':' (자료 없음)');b.disabled=!present;
+    b.setAttribute('aria-pressed',String(name===model));
+    if(present)b.onclick=()=>setReaderModel(name);
+    tabs.appendChild(b);
+  });
+  const work=displayWork(currentText.texts[model],currentText.title);
+  document.getElementById('readerTitle').textContent=work.title;
+  document.getElementById('readerMeta').textContent=currentGenre+' · 주제: '+currentText.title+' · '+model;
+  document.getElementById('readerBody').textContent=work.body;
 }
 
 function showTextAnalysis(){
   let box=document.getElementById('readerAnalysis');
   box.innerHTML='<div class="card" style="margin-top:16px"><b>연구 분석</b><p class="hint">이 글에 해당하는 문서별 분석 결과 CSV를 불러오면 실제 엔트로피와 서프라이절 수치를 연결할 수 있습니다. 현재는 분석 데이터가 연결되지 않았습니다.</p><button class="action secondary" onclick="show(\'research\')">RESEARCH로 이동</button></div>';
-}
-
-function loadHumanCSV(e){
-  let f=e.target.files[0];
-  if(!f)return;
-  const r=new FileReader();
-  r.onload=()=>{
-    try{
-      let rows=parseCSV(r.result);
-      let h=rows[0]||[];
-      let gi=findCol(h,['genre','장르']),ti=findCol(h,['text','body','content','본문','텍스트']),ii=findCol(h,['id','title','제목']);
-      if(gi<0||ti<0)throw Error('genre와 text(또는 body/content) 열을 찾지 못했습니다.');
-      humanData={};
-      rows.slice(1).forEach(row=>{
-        let g=row[gi]||'기타';
-        (humanData[g]??=[]).push({title:ii>=0?row[ii]:'텍스트 '+(humanData[g].length+1),genre:g,body:row[ti],source:'CSV'});
-      });
-      document.getElementById('humanUploadStatus').textContent='불러오기 완료: '+(rows.length-1)+'개 텍스트';
-    }catch(err){
-      document.getElementById('humanUploadStatus').textContent='불러오기 실패: '+err.message;
-    }
-  };
-  r.readAsText(f,'UTF-8');
 }
 
 function newQuiz(){
