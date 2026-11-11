@@ -1,288 +1,575 @@
-
-from pathlib import Path
-import json
-import re
-
-# 실행: python build_site.py
-# 필요한 원본 파일: index(1).html
-# 결과물: site/index.html 및 site/data/*.json
-
-SOURCE = Path("index(1).html")
-OUT = Path("site")
-
-html = SOURCE.read_text(encoding="utf-8-sig")
-
-pattern = (
-    r'<script\s+type="application/json"\s+'
-    r'id="aiLibraryData">(.*?)</script>'
-)
-
-match = re.search(pattern, html, re.S)
-
-if not match:
-    raise ValueError("원본 HTML에서 AI 글 데이터를 찾지 못했습니다.")
-
-data = json.loads(match.group(1))
-
-genre_files = {
-    "시": "poetry",
-    "소설": "novel",
-    "설명문": "expository",
-    "논설문": "argumentative"
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f4f6f8">
+<title>TEXT & ENTROPY | HUMAN vs AI</title>
+<style>
+:root{
+  --bg:#f4f6f8;
+  --panel:#ffffff;
+  --panel2:#eef2f5;
+  --line:#dce2e8;
+  --line-hover:#b8c4d0;
+  --txt:#1e293b;
+  --muted:#5a6e7f;
+  
+  /* 연구 포스터 메인 테마 색상 */
+  --slate-navy:#2d425f;
+  --sage-green:#4d7a5e;
+  --accent-red:#d9534f;
+  --card-bg:#e9f0ec;
+  
+  --shadow:0 4px 18px -2px rgba(45, 66, 95, 0.08);
 }
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Pretendard","Noto Sans KR",sans-serif;font-size:16px}
+body{min-height:100dvh}
+button,select,input{font:inherit}
+button{cursor:pointer;color:inherit}
+.app{max-width:1120px;margin:auto;padding:clamp(16px,3.5vw,36px);padding-bottom:50px}
 
-# 원본 글은 한 글자도 수정하지 않고 별도 파일로 저장
-(OUT / "data").mkdir(parents=True, exist_ok=True)
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:clamp(20px,3.5vw,40px)}
+.brand{font-size:14px;letter-spacing:.18em;color:var(--slate-navy);font-weight:800}
+.homebtn{border:1px solid var(--line);background:var(--panel);padding:10px 18px;border-radius:12px;font-weight:700;box-shadow:var(--shadow);color:var(--slate-navy);transition:all .15s}
+.homebtn:hover{border-color:var(--slate-navy)}
 
-for genre, filename in genre_files.items():
-    output = OUT / "data" / f"{filename}.json"
+.hero{text-align:center;padding:clamp(10px,3vw,30px) 10px 24px}
+.eyebrow{color:var(--sage-green);font-size:14px;letter-spacing:.22em;font-weight:800;margin-bottom:12px}
 
-    output.write_text(
-        json.dumps(
-            data[genre],
-            ensure_ascii=False,
-            separators=(",", ":")
-        ),
-        encoding="utf-8"
-    )
+/* 라인아트 일러스트레이션 (인간 vs AI 째려보기) */
+.sketch-container{
+  max-width:380px;
+  margin:0 auto 20px;
+  background:#fff;
+  border:2px solid var(--slate-navy);
+  border-radius:24px;
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+.sketch-container svg{width:100%;height:auto;display:block}
 
-# 기존 HTML에 들어 있던 대용량 데이터 제거
-html = html[:match.start()] + html[match.end():]
+.hero h1{font-size:clamp(38px,7vw,72px);line-height:1.05;margin:12px 0 10px;letter-spacing:-.04em;color:var(--slate-navy);font-weight:900}
+.hero p{color:var(--muted);font-size:clamp(16px,2vw,20px);margin:0;font-weight:600}
 
-old = (
-    "const libraryData=JSON.parse("
-    "document.getElementById('aiLibraryData').textContent);"
-)
+.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2.5vw,22px);margin:28px auto;max-width:1000px}
+.menu-card{
+  min-height:clamp(160px,22vw,240px);
+  border:2px solid var(--line);
+  border-radius:20px;
+  padding:clamp(20px,3vw,28px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  box-shadow:var(--shadow);
+  transition:all .2s ease;
+  background:var(--panel);
+}
+.menu-card:hover{transform:translateY(-3px);border-color:var(--slate-navy)}
+.menu-card:active{transform:scale(.98)}
+.menu-card .card-tag{
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.1em;
+  padding:4px 10px;
+  border-radius:6px;
+  background:rgba(45, 66, 95, 0.08);
+  color:var(--slate-navy);
+}
+.menu-card strong{font-size:clamp(20px,2.4vw,26px);letter-spacing:-.01em;font-weight:800}
+.menu-card span:last-child{font-size:15px;opacity:.9;font-weight:600}
 
-new = r"""
-const libraryData = {};
+/* 포스터 컬러 반영 */
+.blue-theme{background:#f0f4f8;border-color:#cbd7e3;color:var(--slate-navy)}
+.purple-theme{background:#f5f3f8;border-color:#dcd5e7;color:#3b2a56}
+.green-theme{background:var(--card-bg);border-color:#b7d1c2;color:var(--sage-green)}
 
-const genreFiles = {
-  "시": "poetry",
-  "소설": "novel",
-  "설명문": "expository",
-  "논설문": "argumentative"
+.note{text-align:center;color:var(--muted);font-size:14px;margin-top:24px;font-weight:600}
+
+.view{display:none}
+.view.active{display:block;animation:fade .2s ease}
+@keyframes fade{from{opacity:.4;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+.pagehead{display:flex;align-items:center;gap:16px;margin:12px 0 24px}
+.back{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 16px;font-weight:700;box-shadow:var(--shadow);color:var(--slate-navy)}
+.pagehead h2{font-size:clamp(26px,4vw,40px);margin:0;color:var(--slate-navy);font-weight:800}
+.sub{color:var(--muted);margin:-12px 0 22px;font-size:16px;font-weight:500}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow)}
+
+.genre{
+  min-height:150px;
+  text-align:left;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  background:var(--panel);
+  border:2px solid var(--line);
+  border-radius:18px;
+  padding:22px;
+  box-shadow:var(--shadow);
+  transition:all .2s ease;
+}
+.genre:hover{border-color:var(--sage-green);transform:translateY(-2px)}
+.genre strong{font-size:24px;color:var(--slate-navy)}
+.genre small{color:var(--muted);font-size:13px;font-weight:600}
+
+.textrow{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  text-align:left;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px 22px;
+  margin:10px 0;
+  box-shadow:var(--shadow);
+  transition:all .15s ease;
+}
+.textrow:hover{border-color:var(--sage-green)}
+.textrow strong{font-size:20px;color:var(--slate-navy)}
+.textrow small{display:block;color:var(--muted);margin-top:4px;font-size:14px}
+
+.pill{font-size:13px;border-radius:8px;padding:6px 14px;background:var(--card-bg);color:var(--sage-green);font-weight:700;white-space:nowrap}
+.reading{font-size:clamp(19px,2.3vw,23px);line-height:2;white-space:pre-line;color:#2c3e50;font-weight:450}
+.meta{color:var(--muted);font-size:14px;font-weight:600}
+
+.action{border:0;border-radius:12px;padding:14px 22px;background:var(--sage-green);font-weight:800;color:white;font-size:16px;box-shadow:0 4px 12px rgba(77,122,94,0.25)}
+.action.secondary{background:var(--slate-navy);color:white;box-shadow:0 4px 12px rgba(45,66,95,0.2)}
+
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+
+.quizcols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.quizbox{background:var(--panel);border:2px solid var(--line);border-radius:20px;padding:clamp(20px,3vw,28px);display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow)}
+.letter{font-size:42px;font-weight:900;color:var(--slate-navy)}
+.sample{color:#334155;line-height:1.85;min-height:120px;font-size:18px}
+.quizbox button{margin-top:auto}
+
+.result{margin-top:24px;padding:22px;border-radius:16px;background:var(--card-bg);border:1px solid #b7d1c2;color:var(--sage-green)}
+.result h3{margin:0 0 10px;font-size:26px;color:var(--sage-green)}
+
+.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+.tab{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 18px;color:var(--muted);font-weight:700;font-size:15px}
+.tab.active{background:var(--sage-green);border-color:var(--sage-green);color:#fff}
+
+.chartwrap{background:var(--panel);border:2px solid var(--line);border-radius:20px;padding:22px;margin-top:16px;box-shadow:var(--shadow)}
+.chartwrap canvas{width:100%;height:320px;display:block}
+
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.controls select,.controls input{background:#ffffff;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px 14px;max-width:100%;font-size:15px}
+
+.upload{border:2px dashed var(--line-hover);border-radius:18px;padding:22px;margin:18px 0;background:#ffffff}
+.upload b{font-size:16px;color:var(--slate-navy)}
+.hint{font-size:13px;color:var(--muted);line-height:1.6}
+
+.tablewrap{overflow:auto;margin-top:18px}
+table{border-collapse:collapse;width:100%;min-width:500px;font-size:14px}
+th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--slate-navy);background:var(--panel2);font-weight:700}
+
+/* 푸터 양서연, 정여명 이름 추가 */
+.footer{color:var(--muted);text-align:center;font-size:13px;margin-top:48px;font-weight:600;line-height:1.6}
+.footer b{color:var(--slate-navy)}
+
+@media(max-width:650px){
+  .menu{grid-template-columns:1fr;max-width:440px}
+  .menu-card{min-height:130px;flex-direction:row;justify-content:flex-start;text-align:left}
+  .menu-card strong{font-size:19px}
+  .menu-card span:last-child{margin-left:auto}
+  .quizcols{grid-template-columns:1fr}
+  .top{margin-bottom:12px}
+  .hero{padding-top:16px}
+  .pagehead{align-items:flex-start}
+  .pagehead h2{font-size:28px}
+  .chartwrap canvas{height:250px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">2026 창의연구 성과 공유회 · 정보부문</div>
+    <button class="homebtn" onclick="goHome()">⌂ 처음으로</button>
+  </header>
+  <main>
+    <section id="home" class="view active">
+      <div class="hero">
+        <!-- 손그림 스타일 째려보기 SVG 일러스트 -->
+        <div class="sketch-container">
+          <svg viewBox="0 0 320 160" fill="none" stroke="#2d425f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <!-- TITLE -->
+            <text x="160" y="32" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="22" fill="#2d425f" stroke="none">Which is AI?</text>
+            
+            <!-- HUMAN (LEFT) -->
+            <g transform="translate(45, 45)">
+              <!-- Head & Eye looking right -->
+              <circle cx="30" cy="25" r="14" />
+              <circle cx="34" cy="23" r="2.5" fill="#2d425f" stroke="none" />
+              <path d="M 23 20 Q 30 17 37 21" /> <!-- eyebrow -->
+              <path d="M 33 31 Q 28 32 25 30" /> <!-- mouth -->
+              <!-- Folded Arms & Body (Crossed stance) -->
+              <path d="M 30 39 L 30 75" />
+              <path d="M 18 52 Q 30 62 42 50" stroke-width="3" />
+              <path d="M 18 50 L 12 78 M 12 78 L 22 78" />
+              <path d="M 42 50 L 48 78 M 48 78 L 38 78" />
+            </g>
+
+            <!-- VS TEXT -->
+            <text x="160" y="105" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="28" fill="#d9534f" stroke="none">Vs</text>
+
+            <!-- AI ROBOT (RIGHT) -->
+            <g transform="translate(205, 40)">
+              <!-- Question Mark -->
+              <text x="35" y="14" font-family="sans-serif" font-weight="900" font-size="16" fill="#2d425f" stroke="none">?</text>
+              <!-- Hood / Helmet -->
+              <rect x="12" y="18" width="46" height="40" rx="10" />
+              <!-- Face Screen & Eyes looking left -->
+              <rect x="20" y="26" width="30" height="24" rx="5" fill="#eef2f5" />
+              <circle cx="27" cy="38" r="3" fill="#2d425f" stroke="none" />
+              <circle cx="41" cy="38" r="3" fill="#2d425f" stroke="none" />
+              <path d="M 25 31 L 31 33" /> <!-- angry/confused eyebrow -->
+              <path d="M 43 31 L 37 33" />
+              <!-- Body & Track Wheels -->
+              <path d="M 35 58 L 35 80" />
+              <rect x="22" y="62" width="26" height="18" rx="4" />
+              <!-- Bottom wheels -->
+              <ellipse cx="35" cy="88" rx="20" ry="6" />
+              <circle cx="23" cy="88" r="2.5" />
+              <circle cx="35" cy="88" r="2.5" />
+              <circle cx="47" cy="88" r="2.5" />
+            </g>
+          </svg>
+        </div>
+
+        <div class="eyebrow">시계열 엔트로피 기반 텍스트 분석 연구</div>
+        <h1>TEXT & ENTROPY</h1>
+        <p>인간과 AI의 언어, 무엇이 다를까?</p>
+      </div>
+
+      <div class="menu">
+        <button class="menu-card blue-theme" onclick="show('human')">
+          <span class="card-tag">READING</span>
+          <strong>HUMAN'S TEXT</strong>
+          <span>인간의 글 읽어보기 →</span>
+        </button>
+        <button class="menu-card purple-theme" onclick="show('quiz')">
+          <span class="card-tag">TEST</span>
+          <strong>Which is AI?</strong>
+          <span>AI 글 맞히기 →</span>
+        </button>
+        <button class="menu-card green-theme" onclick="show('research')">
+          <span class="card-tag">DATA</span>
+          <strong>RESEARCH</strong>
+          <span>연구 결과 보기 →</span>
+        </button>
+      </div>
+      <div class="note">글을 읽고 · 직접 판단하고 · 데이터로 확인하기</div>
+    </section>
+
+    <section id="human" class="view">
+      <div class="pagehead"><button class="back" onclick="goHome()">←</button><h2>HUMAN'S TEXT</h2></div>
+      <p class="sub">읽고 싶은 장르를 선택하세요.</p>
+      <div class="grid">
+        <button class="genre" onclick="openGenre('시')"><strong>시</strong><small>POETRY · 30편 예정</small></button>
+        <button class="genre" onclick="openGenre('소설')"><strong>소설</strong><small>NOVEL · 30편 예정</small></button>
+        <button class="genre" onclick="openGenre('설명문')"><strong>설명문</strong><small>EXPOSITORY · 60편 예정</small></button>
+        <button class="genre" onclick="openGenre('논설문')"><strong>논설문</strong><small>ARGUMENTATIVE · 60편 예정</small></button>
+      </div>
+      <div class="upload">
+        <b>내 텍스트 자료 불러오기</b>
+        <p class="hint">연구용 CSV를 선택하면 장르와 텍스트 열을 읽어 목록에 반영합니다. 기본 지원 열: genre, text, id (또는 title).</p>
+        <input type="file" accept=".csv,text/csv" onchange="loadHumanCSV(event)">
+        <div id="humanUploadStatus" class="hint"></div>
+      </div>
+    </section>
+
+    <section id="texts" class="view">
+      <div class="pagehead"><button class="back" onclick="show('human')">←</button><h2 id="genreTitle">시</h2></div>
+      <p class="sub">텍스트를 선택해 전문을 읽어보세요.</p>
+      <div id="textList"></div>
+    </section>
+
+    <section id="reader" class="view">
+      <div class="pagehead"><button class="back" onclick="show('texts')">←</button><h2 id="readerTitle">텍스트</h2></div>
+      <div class="card">
+        <div class="meta" id="readerMeta"></div>
+        <div class="reading" id="readerBody" style="margin-top:18px"></div>
+      </div>
+      <div class="actions">
+        <button class="action" onclick="showTextAnalysis()">이 글의 분석 보기</button>
+        <button class="action secondary" onclick="show('texts')">목록으로</button>
+      </div>
+      <div id="readerAnalysis"></div>
+    </section>
+
+    <section id="quiz" class="view">
+      <div class="pagehead"><button class="back" onclick="goHome()">←</button><h2>Which is AI?</h2></div>
+      <p class="sub">두 글 중 AI가 작성한 글을 골라보세요.</p>
+      <div class="quizcols">
+        <article class="quizbox"><div class="letter">A</div><div class="sample" id="quizA"></div><button class="action secondary" onclick="answerQuiz('A')">A 선택</button></article>
+        <article class="quizbox"><div class="letter">B</div><div class="sample" id="quizB"></div><button class="action secondary" onclick="answerQuiz('B')">B 선택</button></article>
+      </div>
+      <div id="quizResult"></div>
+      <div class="actions"><button class="action" onclick="newQuiz()">다른 문제 풀기 ↻</button></div>
+      <p class="hint">현재 기본 문제는 체험용 예시입니다. 실제 인간·AI 텍스트를 연결하기 전에는 연구 결과나 정답 통계로 사용하지 마세요.</p>
+    </section>
+
+    <section id="research" class="view">
+      <div class="pagehead"><button class="back" onclick="goHome()">←</button><h2>RESEARCH</h2></div>
+      <p class="sub">분석 결과 CSV를 불러와 그래프로 확인하세요.</p>
+      <div class="upload">
+        <b>분석 결과 CSV 불러오기</b>
+        <p class="hint">예: trigram_group_summary.csv, trigram_window_entropy_results.csv, trigram_kld_results.csv 등.</p>
+        <input id="researchFile" type="file" accept=".csv,text/csv" onchange="loadResearchCSV(event)">
+        <div id="researchStatus" class="hint">아직 파일을 불러오지 않았습니다.</div>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="selectMetric('entropy',this)">Entropy</button>
+        <button class="tab" onclick="selectMetric('surprisal',this)">Surprisal</button>
+        <button class="tab" onclick="selectMetric('burst',this)">Burstiness</button>
+        <button class="tab" onclick="selectMetric('kld',this)">KLD</button>
+      </div>
+      <div class="chartwrap">
+        <div class="controls">
+          <label class="hint" for="xcol">가로축</label><select id="xcol" onchange="drawResearch()"></select>
+          <label class="hint" for="ycol">세로축</label><select id="ycol" onchange="drawResearch()"></select>
+        </div>
+        <canvas id="researchChart" width="1000" height="420" aria-label="연구 결과 그래프"></canvas>
+        <div id="chartCaption" class="hint">예시 화면입니다. CSV를 불러오면 해당 파일의 열을 선택해 그래프로 표시합니다.</div>
+      </div>
+      <div class="tablewrap" id="dataTable"></div>
+    </section>
+  </main>
+  
+  <div class="footer">
+    TEXT & ENTROPY · HUMAN LANGUAGE vs AI LANGUAGE<br>
+    <b>출품자: 16기 양서연, 정여명, 최영준</b>
+  </div>
+</div>
+
+<script>
+const demoTexts={
+'시':[
+{title:'시간의 흔적',body:'창가에 내려앉은 저녁빛\n하루의 끝을 천천히 접는다.\n말없이 지나간 순간들은\n희미한 온기로 남아 있다.'},
+{title:'비 오는 날',body:'빗방울이 유리창을 두드리고\n거리의 불빛은 길게 번진다.\n잠시 멈춘 발걸음 사이로\n작은 계절 하나가 지나간다.'}],
+'소설':[{title:'낯선 역',body:'기차가 멈추자 플랫폼에는 잠깐의 정적이 흘렀다. 그는 가방 손잡이를 고쳐 잡고 낯선 역의 이름을 다시 읽었다. 오래전 떠났던 곳과 닮았지만, 어느 것도 완전히 같지는 않았다.'}],
+'설명문':[{title:'언어 모델의 원리',body:'언어 모델은 앞에 등장한 단어의 문맥을 바탕으로 다음에 등장할 단어의 확률을 계산한다. 트라이그램 모델은 직전 두 단어를 문맥으로 사용해 다음 단어의 확률 분포를 추정한다.'}],
+'논설문':[{title:'기술과 글쓰기',body:'생성형 인공지능의 활용이 늘어날수록 글쓰기에서 인간의 역할을 다시 생각할 필요가 있다. 기술의 편리함을 인정하되, 자료를 검토하고 자신의 생각을 구성하는 과정은 여전히 중요하다.'}]
 };
 
-// GitHub Pages에서 JSON 불러오기
-async function loadGenreData(genre) {
-  if (libraryData[genre]) return;
+let humanData=null,currentGenre='시',currentText=null,researchRows=[],researchCols=[],metric='entropy',quizIndex=0,quizAnswered=false;
+const quizItems=[
+{a:'저녁의 바람은 창문을 지나 방 안으로 스며들었다. 거리의 소음이 잦아들자 오래된 기억 하나가 조용히 떠올랐다.',b:'인간은 언어를 사용하여 생각과 감정을 전달한다. 언어의 구조와 사용 양상을 분석하면 의사소통의 특징을 이해할 수 있다.',answer:'B',why:'이 문제는 체험용으로 만든 가상 예시입니다. 문체만으로 작성 주체를 확정할 수는 없습니다.'},
+{a:'빛은 물체의 표면에서 반사되어 눈에 들어오며, 우리는 이 과정을 통해 주변 사물을 인식한다.',b:'창문 너머 빛이 천천히 기울었다. 사라지는 햇살을 바라보며 오늘 하루도 어딘가에 놓아두었다.',answer:'A',why:'이 문제는 체험용 예시입니다. 실제 연구에서는 동일 장르·주제의 글을 비교해야 합니다.'}
+];
 
-  const filename = genreFiles[genre];
+function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
+function goHome(){show('home')}
+function openGenre(g){currentGenre=g;document.getElementById('genreTitle').textContent=g;renderTextList();show('texts')}
 
-  const response = await fetch(
-    "./data/" + filename + ".json"
-  );
-
-  if (!response.ok) {
-    throw new Error("HTTP " + response.status);
-  }
-
-  const items = await response.json();
-
-  if (!Array.isArray(items)) {
-    throw new Error("잘못된 데이터 형식");
-  }
-
-  libraryData[genre] = items;
-}
-
-// 마크다운 제거는 화면에서만 수행
-// JSON에 저장된 원본 글은 변경하지 않음
-function tidyMarkdown(raw) {
-  let text = String(raw || "")
-    .replace(/\r\n?/g, "\n");
-
-  // HTML 문자 엔티티 해석
-  text = text.replace(
-    /&(?:#x[0-9a-f]+|#\d+|nbsp|amp|lt|gt|quot);/gi,
-    entity => {
-      const element = document.createElement("textarea");
-      element.innerHTML = entity;
-      return element.value;
-    }
-  );
-
-  text = text.split("\n").map(line => {
-    // 마크다운 제목 표시 제거
-    line = line.replace(/^\s{0,3}#{1,6}\s+/, "");
-
-    // 인용 표시 제거
-    line = line.replace(/^\s{0,3}>\s?/, "");
-
-    // 굵게 표시
-    line = line.replace(/\*\*(.*?)\*\*/g, "$1");
-    line = line.replace(/__(.*?)__/g, "$1");
-
-    // 기울임 표시
-    line = line.replace(
-      /(?<!\*)\*([^*\n]+)\*(?!\*)/g,
-      "$1"
-    );
-
-    line = line.replace(
-      /(?<!_)_([^_\n]+)_(?!_)/g,
-      "$1"
-    );
-
-    // 인라인 코드 표시
-    line = line.replace(/`([^`\n]+)`/g, "$1");
-
-    // 마크다운 링크를 일반 텍스트로 표시
-    line = line.replace(
-      /\[([^\]\n]+)\]\((https?:\/\/[^)]+)\)/g,
-      "$1 ($2)"
-    );
-
-    return line;
-  }).join("\n");
-
-  // 3개 이상의 연속 줄바꿈을 2개로 축소
-  text = text.replace(
-    /\n[ \t]*\n(?:[ \t]*\n)+/g,
-    "\n\n"
-  );
-
-  return text.trim();
-}
-
-// 주제 제목 비교용
-function normalizedTitle(value) {
-  return tidyMarkdown(value)
-    .replace(/^\d+\.\s*/, "")
-    .toLowerCase()
-    .replace(/[\s\u00a0]+/g, " ")
-    .trim();
-}
-
-// 실제 읽기 화면에 표시할 텍스트 구성
-function prepareForReading(raw, topic) {
-  let lines = String(raw || "")
-    .replace(/\r\n?/g, "\n")
-    .split("\n");
-
-  // 맨 앞에 있는 중복 원작 주제 표시만 제외
-  const first = lines.findIndex(line => line.trim());
-
-  if (
-    first >= 0 &&
-    normalizedTitle(lines[first]) === normalizedTitle(topic)
-  ) {
-    lines.splice(first, 1);
-  }
-
-  // 창작 지시문의 구분 라벨 제거
-  const labelPattern =
-    /^(?:\d+\.\s*)?(?:Title of the Work|Creative Work)$/i;
-
-  lines = lines.filter(line => {
-    return !labelPattern.test(
-      tidyMarkdown(line).trim()
-    );
+function renderTextList(){
+  let items=(humanData||demoTexts)[currentGenre]||[];
+  let el=document.getElementById('textList');
+  el.innerHTML='';
+  if(!items.length){el.innerHTML='<div class="card">이 장르의 텍스트가 없습니다. CSV를 불러와 주세요.</div>';return;}
+  items.forEach((t,i)=>{
+    let b=document.createElement('button');
+    b.className='textrow';
+    b.innerHTML='<span><strong></strong><small></small></span><span class="pill">읽기 →</span>';
+    b.querySelector('strong').textContent=t.title||t.id||('텍스트 '+(i+1));
+    b.querySelector('small').textContent=currentGenre+' · '+(t.source||'인간 텍스트');
+    b.onclick=()=>openText(t);
+    el.appendChild(b);
   });
-
-  // 창작 작품 제목을 첫 줄에 표시
-  return tidyMarkdown(lines.join("\n"));
 }
-"""
 
-if old not in html:
-    raise ValueError("기존 데이터 연결 코드를 찾지 못했습니다.")
+function openText(t){
+  currentText=t;
+  document.getElementById('readerTitle').textContent=t.title||'텍스트';
+  document.getElementById('readerMeta').textContent=(t.genre||currentGenre)+' · '+(t.source||'텍스트');
+  document.getElementById('readerBody').textContent=t.body||t.text||'';
+  document.getElementById('readerAnalysis').innerHTML='';
+  show('reader');
+}
 
-html = html.replace(old, new, 1)
+function showTextAnalysis(){
+  let box=document.getElementById('readerAnalysis');
+  box.innerHTML='<div class="card" style="margin-top:16px"><b>연구 분석</b><p class="hint">이 글에 해당하는 문서별 분석 결과 CSV를 불러오면 실제 엔트로피와 서프라이절 수치를 연결할 수 있습니다. 현재는 분석 데이터가 연결되지 않았습니다.</p><button class="action secondary" onclick="show(\'research\')">RESEARCH로 이동</button></div>';
+}
 
-# 장르 선택 시 해당 JSON을 불러오도록 수정
-old_genre = (
-    "function openGenre(g){"
-    "currentGenre=g;"
-    "document.getElementById('genreTitle').textContent=g;"
-    "renderTextList();"
-    "show('texts')}"
-)
-
-new_genre = """
-async function openGenre(g) {
-  currentGenre = g;
-
-  document.getElementById("genreTitle").textContent = g;
-  document.getElementById("textList").textContent =
-    "불러오는 중...";
-
-  show("texts");
-
-  try {
-    await loadGenreData(g);
-
-    if (currentGenre === g) {
-      renderTextList();
+function loadHumanCSV(e){
+  let f=e.target.files[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      let rows=parseCSV(r.result);
+      let h=rows[0]||[];
+      let gi=findCol(h,['genre','장르']),ti=findCol(h,['text','body','content','본문','텍스트']),ii=findCol(h,['id','title','제목']);
+      if(gi<0||ti<0)throw Error('genre와 text(또는 body/content) 열을 찾지 못했습니다.');
+      humanData={};
+      rows.slice(1).forEach(row=>{
+        let g=row[gi]||'기타';
+        (humanData[g]??=[]).push({title:ii>=0?row[ii]:'텍스트 '+(humanData[g].length+1),genre:g,body:row[ti],source:'CSV'});
+      });
+      document.getElementById('humanUploadStatus').textContent='불러오기 완료: '+(rows.length-1)+'개 텍스트';
+    }catch(err){
+      document.getElementById('humanUploadStatus').textContent='불러오기 실패: '+err.message;
     }
-  } catch (error) {
-    document.getElementById("textList").textContent =
-      "글을 불러올 수 없습니다. " +
-      "data 폴더를 확인하세요. (" +
-      error.message + ")";
-  }
+  };
+  r.readAsText(f,'UTF-8');
 }
-"""
 
-if old_genre not in html:
-    raise ValueError("장르 선택 함수를 찾지 못했습니다.")
+function newQuiz(){
+  quizIndex=(quizIndex+1)%quizItems.length;
+  quizAnswered=false;
+  document.getElementById('quizA').textContent=quizItems[quizIndex].a;
+  document.getElementById('quizB').textContent=quizItems[quizIndex].b;
+  document.getElementById('quizResult').innerHTML='';
+}
 
-html = html.replace(old_genre, new_genre, 1)
+function answerQuiz(choice){
+  if(quizAnswered)return;
+  quizAnswered=true;
+  let q=quizItems[quizIndex],correct=choice===q.answer;
+  let d=document.createElement('div');
+  d.className='result';
+  d.innerHTML='<h3>'+(correct?'정답입니다!':'선택 완료')+'</h3><p><b>예시 정답: '+q.answer+'</b></p><p>'+q.why+'</p><p class="hint">실제 연구 데이터가 연결되면 인간·AI 글의 출처와 분석 결과를 함께 공개하도록 확장할 수 있습니다.</p>';
+  document.getElementById('quizResult').replaceChildren(d);
+}
 
-# 글 표시 단계에서만 형식을 정리
-old_reader = (
-    "document.getElementById('readerBody').textContent="
-    "currentText.texts[model]||'';"
-)
+function parseCSV(s){
+  let rows=[],row=[],v='',q=false;
+  for(let i=0;i<s.length;i++){
+    let c=s[i];
+    if(c==='"'&&q&&s[i+1]==='"'){v+='"';i++;}
+    else if(c==='"'){q=!q;}
+    else if(c===','&&!q){row.push(v);v='';}
+    else if((c==='\n'||c==='\r')&&!q){
+      if(c==='\r'&&s[i+1]==='\n')i++;
+      row.push(v);
+      if(row.some(x=>x!==''))rows.push(row);
+      row=[];v='';
+    }else v+=c;
+  }
+  row.push(v);
+  if(row.some(x=>x!==''))rows.push(row);
+  return rows;
+}
 
-new_reader = """
-document.getElementById("readerBody").textContent =
-  prepareForReading(
-    currentText.texts[model],
-    currentText.title
-  );
-"""
+function findCol(headers,names){return headers.findIndex(h=>names.includes(String(h).trim().toLowerCase()));}
 
-if old_reader not in html:
-    raise ValueError("글 읽기 함수를 찾지 못했습니다.")
+function loadResearchCSV(e){
+  let f=e.target.files[0];
+  if(!f)return;
+  let r=new FileReader();
+  r.onload=()=>{
+    try{
+      let all=parseCSV(r.result);
+      researchCols=all[0].map(x=>String(x).trim());
+      researchRows=all.slice(1).filter(x=>x.length);
+      if(!researchCols.length)throw Error('CSV 헤더가 없습니다.');
+      let xsel=document.getElementById('xcol'),ysel=document.getElementById('ycol');
+      xsel.innerHTML='';ysel.innerHTML='';
+      researchCols.forEach((c,i)=>{xsel.add(new Option(c,i));ysel.add(new Option(c,i));});
+      let numeric=researchCols.findIndex((c,i)=>researchRows.some(row=>!isNaN(Number(row[i]))&&row[i]!==''));
+      ysel.value=numeric>=0?numeric:0;
+      xsel.value=0;
+      document.getElementById('researchStatus').textContent=f.name+' · '+researchRows.length+'행 불러오기 완료';
+      drawResearch();
+    }catch(err){
+      document.getElementById('researchStatus').textContent='오류: '+err.message;
+    }
+  };
+  r.readAsText(f,'UTF-8');
+}
 
-html = html.replace(old_reader, new_reader, 1)
+function selectMetric(m,btn){
+  metric=m;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
+  if(researchRows.length)drawResearch();else drawDemo();
+}
 
-# 읽기 화면 가독성 조정
-html = html.replace(
-    ".reading{font-size:clamp(19px,2.3vw,23px);line-height:2;",
-    ".reading{font-size:clamp(17px,2vw,20px);line-height:1.75;"
-)
+function drawResearch(){
+  if(!researchRows.length){drawDemo();return;}
+  let xi=Number(document.getElementById('xcol').value),yi=Number(document.getElementById('ycol').value);
+  let pts=researchRows.map((r,i)=>({x:r[xi]||String(i+1),y:Number(String(r[yi]??'').replace(/,/g,''))})).filter(p=>Number.isFinite(p.y));
+  drawChart(pts,researchCols[yi]||'값');
+  renderTable();
+}
 
-# 수정된 웹사이트 코드 저장
-output_html = OUT / "index.html"
-output_html.write_text(html, encoding="utf-8")
+function drawDemo(){
+  let names=['Human','ChatGPT','Gemini','Claude'];
+  let vals=metric==='entropy'?[3.8,4.1,4.0,3.9]:metric==='surprisal'?[4.0,4.3,4.2,4.1]:metric==='burst'?[.31,.38,.35,.33]:[0,.12,.10,.09];
+  drawChart(names.map((x,i)=>({x,y:vals[i]})),metric.toUpperCase());
+  document.getElementById('chartCaption').textContent='화면 예시용 수치입니다. 분석 CSV를 업로드하면 실제 값으로 교체됩니다.';
+  document.getElementById('dataTable').innerHTML='';
+}
 
-# 검증
-assert "aiLibraryData" not in html
+function drawChart(points,label){
+  let c=document.getElementById('researchChart'),ctx=c.getContext('2d'),w=c.width,h=c.height;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,w,h);
+  
+  let vals=points.map(p=>p.y),min=Math.min(0,...vals),max=Math.max(...vals);
+  if(max===min)max=min+1;
+  let left=70,right=25,top=25,bottom=65,ph=h-top-bottom,pw=w-left-right;
+  
+  ctx.strokeStyle='#dce2e8';
+  ctx.lineWidth=1;
+  ctx.font='15px sans-serif';
+  ctx.fillStyle='#5a6e7f';
+  for(let i=0;i<=4;i++){
+    let y=top+ph*i/4;
+    ctx.beginPath();
+    ctx.moveTo(left,y);
+    ctx.lineTo(w-right,y);
+    ctx.stroke();
+    ctx.fillText((max-(max-min)*i/4).toFixed(2),8,y+5);
+  }
+  
+  let n=Math.min(points.length,24);
+  for(let i=0;i<n;i++){
+    let p=points[i],x=left+(n===1?pw/2:pw*i/(n-1)),y=top+ph-(p.y-min)/(max-min)*ph;
+    ctx.fillStyle='#4d7a5e'; /* 포스터 세이지 그린 적용 */
+    ctx.beginPath();
+    ctx.arc(x,y,7,0,Math.PI*2);
+    ctx.fill();
+    
+    ctx.fillStyle='#2d425f'; /* 포스터 네이비 블루 */
+    ctx.font='bold 14px sans-serif';
+    let txt=String(p.x);
+    ctx.save();
+    ctx.translate(x,bottom+top+12);
+    ctx.rotate(-.35);
+    ctx.fillText(txt.slice(0,15),0,0);
+    ctx.restore();
+  }
+  
+  ctx.fillStyle='#2d425f';
+  ctx.font='bold 18px sans-serif';
+  ctx.fillText(label,left,18);
+}
 
-assert (
-    "prepareForReading(" in html
-    and "loadGenreData(" in html
-)
+function renderTable(){
+  let rows=researchRows.slice(0,8);
+  let html='<table><thead><tr>'+researchCols.map(c=>'<th>'+escapeHTML(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+researchCols.map((c,i)=>'<td>'+escapeHTML(r[i]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+  document.getElementById('dataTable').innerHTML=html;
+}
 
-for genre, filename in genre_files.items():
-    saved = json.loads(
-        (OUT / "data" / f"{filename}.json").read_text(
-            encoding="utf-8"
-        )
-    )
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-    # 원본 AI 글의 내용이 바뀌지 않았는지 비교
-    assert saved == data[genre], f"{genre} 원문 불일치"
-
-print("완료!")
-print("HTML:", output_html)
-print("HTML 크기:", output_html.stat().st_size, "bytes")
-
-for genre, filename in genre_files.items():
-    print(genre, ":", len(data[genre]), "개 주제")
-
-print("원본 JSON 데이터 변경 없음")
-print("site 폴더 안의 파일을 GitHub에 업로드하세요.")
+newQuiz();
+drawDemo();
+</script>
+</body>
+</html>
