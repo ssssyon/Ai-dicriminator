@@ -371,7 +371,7 @@ async function openGenre(g){
   list.textContent='글 목록을 불러오는 중...';
   try{
     if(!libraryCache[g]){
-      const res=await fetch('./data/'+genreFiles[g],{cache:'no-cache'});
+      const res=await fetch('./'+genreFiles[g],{cache:'no-cache'});
       if(!res.ok)throw new Error('HTTP '+res.status);
       libraryCache[g]=await res.json();
     }
