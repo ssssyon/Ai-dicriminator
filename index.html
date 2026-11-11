@@ -190,6 +190,32 @@ th{color:var(--slate-navy);background:var(--panel2);font-weight:700}
   .pagehead h2{font-size:28px}
   .chartwrap canvas{height:250px}
 }
+
+/* Interactive ten-question AI comparison */
+[hidden]{display:none!important}
+.quiz-topline{display:flex;justify-content:space-between;color:var(--slate-navy);font-size:14px;font-weight:800;margin-bottom:10px}
+.quiz-progressbar{height:8px;background:var(--line);border-radius:20px;overflow:hidden;margin-bottom:22px}
+.quiz-progressbar span{display:block;height:100%;background:var(--sage-green);width:10%;transition:width .3s ease}
+.quiz-topic{color:var(--slate-navy);font-size:clamp(24px,3vw,30px);margin:0 0 18px}
+.quiz-sub{margin:0 0 22px}
+.quizbox .sample{white-space:pre-line;line-height:1.95;flex:1;min-height:150px}
+.quizbox button:disabled{opacity:.48;cursor:not-allowed}
+.quizbox button.quiz-selected{background:var(--sage-green)}
+.quiz-actions{margin-bottom:16px}
+.quiz-message{border:1px solid var(--line);padding:22px 26px;border-radius:18px;margin-top:20px;background:var(--panel);box-shadow:var(--shadow)}
+.quiz-message h3{margin:0 0 8px;font-size:24px}
+.quiz-message p{line-height:1.7;color:var(--txt)}
+.quiz-success{border-color:#86b69b;background:#edf8f1}
+.quiz-success h3{color:#276843}
+.quiz-error{border-color:#e9a5a5;background:#fff0f0}
+.quiz-error h3{color:#b82c32}
+body.quiz-wrong-flash::before{content:"";position:fixed;inset:0;z-index:9998;background:rgba(223,35,48,.80);pointer-events:none;animation:wrongOverlay .95s ease-out forwards}
+body.quiz-wrong-flash .quizbox{border-color:#e14b4b}
+@keyframes wrongOverlay{0%,30%{opacity:1}100%{opacity:0}}
+.confetti-layer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:9999}
+.confetti-layer i{position:absolute;top:-30px;width:10px;height:16px;border-radius:2px;animation:confettiFall var(--duration) linear var(--delay) forwards;opacity:0}
+@keyframes confettiFall{0%{transform:translate3d(0,-10vh,0) rotate(0);opacity:1}100%{transform:translate3d(var(--drift),110vh,0) rotate(840deg);opacity:0}}
+@media(prefers-reduced-motion:reduce){.confetti-layer{display:none}body.quiz-wrong-flash::before{animation:none;opacity:.25}}
 </style>
 </head>
 <body>
@@ -259,7 +285,7 @@ th{color:var(--slate-navy);background:var(--panel2);font-weight:700}
           <strong>AI TEXT LIBRARY</strong>
           <span>AI가 쓴 글 읽어보기 →</span>
         </button>
-        <button class="menu-card purple-theme" onclick="show('quiz')">
+        <button class="menu-card purple-theme" onclick="document.querySelector('.quizcols').hidden=false;document.getElementById('quizNext').onclick=nextQuiz;resetQuiz();show('quiz')">
           <span class="card-tag">TEST</span>
           <strong>Which is AI?</strong>
           <span>AI 글 맞히기 →</span>
@@ -306,15 +332,21 @@ th{color:var(--slate-navy);background:var(--panel2);font-weight:700}
     </section>
 
     <section id="quiz" class="view">
-      <div class="pagehead"><button class="back" onclick="goHome()">←</button><h2>Which is AI?</h2></div>
-      <p class="sub">두 글 중 AI가 작성한 글을 골라보세요.</p>
+      <div class="pagehead"><button class="back" onclick="leaveQuiz()">← 나가기</button><h2>Which is AI?</h2></div>
+      <div class="quiz-topline"><span id="quizProgress">01 / 10</span><span id="quizScore">정답 0개</span></div>
+      <div class="quiz-progressbar"><span id="quizProgressFill"></span></div>
+      <h3 id="quizTopic" class="quiz-topic">주제</h3>
+      <p class="sub quiz-sub">동일한 주제의 인간 글과 AI 글을 한국어로 옮긴 일부 구절입니다. 어느 쪽을 AI가 썼을까요?</p>
       <div class="quizcols">
-        <article class="quizbox"><div class="letter">A</div><div class="sample" id="quizA"></div><button class="action secondary" onclick="answerQuiz('A')">A 선택</button></article>
-        <article class="quizbox"><div class="letter">B</div><div class="sample" id="quizB"></div><button class="action secondary" onclick="answerQuiz('B')">B 선택</button></article>
+        <article class="quizbox"><div class="letter">A</div><div class="sample" id="quizA"></div><button id="quizButtonA" class="action secondary" onclick="answerQuiz('A')">A가 AI이다</button></article>
+        <article class="quizbox"><div class="letter">B</div><div class="sample" id="quizB"></div><button id="quizButtonB" class="action secondary" onclick="answerQuiz('B')">B가 AI이다</button></article>
       </div>
-      <div id="quizResult"></div>
-      <div class="actions"><button class="action" onclick="newQuiz()">다른 문제 풀기 ↻</button></div>
-      <p class="hint">현재 기본 문제는 체험용 예시입니다. 실제 인간·AI 텍스트를 연결하기 전에는 연구 결과나 정답 통계로 사용하지 마세요.</p>
+      <div id="quizResult" aria-live="polite"></div>
+      <div class="actions quiz-actions">
+        <button id="quizNext" class="action" onclick="nextQuiz()">다른 문제 풀기 →</button>
+        <button class="action secondary" onclick="leaveQuiz()">테스트 나가기</button>
+      </div>
+      <p class="hint">실제 수집된 같은 주제의 인간·AI 글에서 발췌하여 한국어로 번역했습니다. 번역은 원문의 표현과 운율에 차이를 만들 수 있습니다.</p>
     </section>
 
     <section id="research" class="view">
@@ -356,10 +388,8 @@ let currentGenre='시',currentText=null,researchRows=[],researchCols=[],metric='
 const genreFiles={'시':'poetry.json','소설':'novel.json','설명문':'expository.json','논설문':'argumentative.json'};
 const modelOrder=['ChatGPT','Claude','Gemini'];
 const libraryCache={};
-const quizItems=[
-{a:'저녁의 바람은 창문을 지나 방 안으로 스며들었다. 거리의 소음이 잦아들자 오래된 기억 하나가 조용히 떠올랐다.',b:'인간은 언어를 사용하여 생각과 감정을 전달한다. 언어의 구조와 사용 양상을 분석하면 의사소통의 특징을 이해할 수 있다.',answer:'B',why:'이 문제는 체험용으로 만든 가상 예시입니다. 문체만으로 작성 주체를 확정할 수는 없습니다.'},
-{a:'빛은 물체의 표면에서 반사되어 눈에 들어오며, 우리는 이 과정을 통해 주변 사물을 인식한다.',b:'창문 너머 빛이 천천히 기울었다. 사라지는 햇살을 바라보며 오늘 하루도 어딘가에 놓아두었다.',answer:'A',why:'이 문제는 체험용 예시입니다. 실제 연구에서는 동일 장르·주제의 글을 비교해야 합니다.'}
-];
+const quizItems=[{"topic":"Beer","group_id":"grp_181","model":"ChatGPT","a":"저녁이 마을 위에 조용히 내려앉고\n지친 거리는 황금빛을 회색빛과 바꾼다.\n나는 나의 작은 왕국이 짊어진 짐을 내려놓는다.","b":"여기, 맥주 한 잔을 들고\n나는 앉아 있네.\n황금 같은 순간들이 스쳐 지나가는 동안.","answer":"A","human_original":"Here,\nWith my beer\nI sit,\nWhile golden moments flit:","ai_original":"The evening settles softly on the town,\nAnd weary streets exchange their gold for gray.\nI set my little kingdom's burdens down"},{"topic":"A Ruin","group_id":"grp_182","model":"Claude","a":"그 폐허에 무엇이 남았는가? 아무것도 없다.\n하늘을 액자처럼 감싸며 솟아오르는 창문 아치 하나,\n그 꼭대기까지 홀로 돌로 세워져 있을 뿐.","b":"마지막 버스 정류장을 지나 길이 끝나는 곳,\n바다 없는 등대가 여전히 제자리를 지킨다.\n밀물과 썰물은 한 세기 전에 물러났다.","answer":"B","human_original":"What of that ruin? There is nothing left\nSave one sky--framing window arch, which climbs\nUp to its top point, single stoned, bereft","ai_original":"Past the last bus stop, where the road gives up,\na lighthouse keeps its post without a sea.\nThe tide withdrew a century ago"},{"topic":"Two O'Clock","group_id":"grp_183","model":"ChatGPT","a":"밤의 무게 아래 집은 고요해지고\n멀리 창문들은 하나둘 빛을 내려놓는다.\n거리에서는 분주하던 발걸음이 멎는다.","b":"밤은 밤을 이어 지나가고, 시계는 여전히 종을 울린다.\n어둠 속 별들은 무늬를 바꾸고\n손목시계는 똑딱이며, 막강한 시간은 흘러간다.","answer":"A","human_original":"Night after night goes by: and clocks still chime\nAnd stars are changing pattrns in the dark\nAnd watches tick, and over-puissant Time","ai_original":"The house grows still beneath the weight of night,\nAnd distant windows surrender their light.\nAlong the streets, the restless footsteps cease,"},{"topic":"The Milkman","group_id":"grp_184","model":"Gemini","a":"이른 아침 지붕마다 새벽빛이 걸리면\n굴러오는 바퀴와 말발굽 소리가 들린다.\n우유병이 딸랑거리고, 그는 다시 떠나간다.","b":"차가운 새벽에 별빛이 사라지기도 전에\n사람들이 깊은 꿈에 잠겨 있을 때, 외로운 그림자 하나가 언덕을 오른다.\n그는 벽돌이 빛날 때까지 불을 지핀다.","answer":"B","human_original":"Early in the morning, when the dawn is on the roofs,\nYou hear his wheels come rolling, you hear his horse's hoofs;\nYou hear the bottles clinking, and then he drives away:","ai_original":"Before the stars have faded from the chill, While heavy eyes are anchored in their dreams, A solitary shadow climbs the hill, And wakes the fires till the brickwork gleams."},{"topic":"My Wife","group_id":"grp_185","model":"Claude","a":"오늘 밤 부엌에는 작은 고요가 머문다.\n잔 두 개가 걸려 있지만 따뜻한 것은 하나뿐.\n창밖 정원에는 어둠이 내려앉아 있다.","b":"달빛처럼 순수하고 한밤의 공기처럼 다정하며\n앵초처럼 소박하고, 용감하고 바르고 아름다운 사람.\n그런 이가 내 아내다. 그래서 나는 더욱 부족하게 느껴진다.","answer":"A","human_original":"Pure as the moonlight, sweet as midnight air,\nSimple as the primrose, brave and just and fair,\nSuch is my wife. The more unworthy I","ai_original":"Tonight the kitchen keeps its own small hush.\nTwo cups hang on their hooks, but only one\nis warm. The window holds the garden dark,"},{"topic":"A Handful of Sonnets","group_id":"grp_186","model":"ChatGPT","a":"운율 속에서 당신을 영원히 살게 할 희망은 없다.\n당신의 아름다움으로 세월을 풍요롭게 할 수도 없다.\n내게는 지금, 이 순간이면 충분하다.","b":"세상은 우리가 나누는 사랑을 끝내 알지 못하고\n돌에 새겨진 우리 이름도 발견하지 못할지 모른다.\n하지만 공기 속에는 성스러운 무언가가 살아 있다.","answer":"B","human_original":"I have no hope to make you live in rhyme\nOr with your beauty to enrich the years—\nEnough for me this now, this present time;","ai_original":"The world may never know the love we share,\nNor find our names engraved upon a stone;\nYet something sacred lives within the air"},{"topic":"A Charm","group_id":"grp_187","model":"Gemini","a":"지붕의 들보들이여, 굳건히 버티고\n무거운 그림자를 뒤로 밀어내라.\n벌어진 틈마다 파고드는 바람이여, 잠잠해져라!","b":"나무여, 환히 타올라라. 불꽃이여, 재빠르게 일어라.\n연기여, 굴뚝을 따라 깨끗이 올라가라.\n사랑하는 그녀가 너의 벽돌 하나하나를 골랐으니.","answer":"A","human_original":"O wood, burn bright; O flame, be quick;\nO smoke, draw cleanly up the flue—\nMy lady chose your every brick","ai_original":"Hold fast, you timbers of the roof, And draw the heavy shadows back; Be still, you winds that seek for proof Of every shivering, unsealed crack!"},{"topic":"Animal Crackers","group_id":"grp_188","model":"Claude","a":"동물 모양 과자와 마실 코코아 한 잔,\n내 생각엔 이것이 가장 훌륭한 저녁 식사다.\n어른이 되어 마음껏 고를 수 있게 된다면.","b":"여섯 살의 나는 세상에서 중요한 것이 무엇인지 알았다.\n조리대 끝에 끌어다 놓은 작은 발판과\n마지막 햇살을 담은 꿀단지였다.","answer":"B","human_original":"Animal crackers, and cocoa to drink,\nThat is the finest of suppers, I think;\nWhen I'm grown up and can have what I please","ai_original":"At six, I knew what mattered in the world:\na step-stool pulled up to the counter’s edge,\na jar of honey catching the last light,"},{"topic":"Ars Dura","group_id":"grp_189","model":"ChatGPT","a":"하루 종일 아직 쓰이지 않은 시구들이 피어난다.\n시골길 가의 들꽃처럼\n그 구절들은 방 안의 고요한 구석구석을 채운다.","b":"얼마나 많은 저녁을 차분히 걸었던가.\n햇빛이 얼룩지게 내려앉은 우리 거리를 따라\n나는 말들을 떠올리며 행복해했다.","answer":"A","human_original":"How many evenings, walking soberly\nAlong our street all dappled with rich sun,\nI please myself with words, and happily","ai_original":"All day, the unwritten verses bloom\nLike wildflowers beside a country lane;\nThey fill the quiet corners of a room,"},{"topic":"Bayberry Candles","group_id":"grp_190","model":"Claude","a":"사랑하는 이여, 언덕 너머로 황혼이 오면\n불길은 황금빛 갈래를 뻗으며 높이 뛰어오르고\n나는 벽난로 선반을 따라 하나씩 놓는다.","b":"나는 이 작은 종이배들을 서툴게 접었다.\n접힌 선은 비뚤고 한쪽 귀퉁이는 찢어졌으며\n배마다 짧은 초 하나를 실었다.","answer":"B","human_original":"Dear sweet, when dusk comes up the hill,\nThe fire leaps high with golden prongs;\nI place along the chimneysill","ai_original":"I folded them badly, these little boats of paper,\nthe creases crooked, one corner torn,\nand in each hull I set a stub of wax"}];
+let quizAttempts=0,quizScore=0,quizCompleted=new Set(),quizFlashTimer=null,confettiTimer=null;
 
 function show(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});}
 function goHome(){show('home')}
@@ -457,22 +487,111 @@ function showTextAnalysis(){
   box.innerHTML='<div class="card" style="margin-top:16px"><b>연구 분석</b><p class="hint">이 글에 해당하는 문서별 분석 결과 CSV를 불러오면 실제 엔트로피와 서프라이절 수치를 연결할 수 있습니다. 현재는 분석 데이터가 연결되지 않았습니다.</p><button class="action secondary" onclick="show(\'research\')">RESEARCH로 이동</button></div>';
 }
 
-function newQuiz(){
-  quizIndex=(quizIndex+1)%quizItems.length;
-  quizAnswered=false;
-  document.getElementById('quizA').textContent=quizItems[quizIndex].a;
-  document.getElementById('quizB').textContent=quizItems[quizIndex].b;
-  document.getElementById('quizResult').innerHTML='';
+function resetQuiz(){
+  quizIndex=0;quizScore=0;quizCompleted=new Set();renderQuiz();
 }
-
+function renderQuiz(){
+  clearTimeout(quizFlashTimer);
+  document.body.classList.remove('quiz-wrong-flash');
+  quizAttempts=0;quizAnswered=false;
+  const q=quizItems[quizIndex];
+  document.getElementById('quizProgress').textContent=String(quizIndex+1).padStart(2,'0')+' / '+quizItems.length;
+  document.getElementById('quizScore').textContent='정답 '+quizScore+'개';
+  document.getElementById('quizProgressFill').style.width=((quizIndex+1)/quizItems.length*100)+'%';
+  document.getElementById('quizTopic').textContent='주제 '+(quizIndex+1)+' · '+q.topic;
+  document.getElementById('quizA').textContent=q.a;
+  document.getElementById('quizB').textContent=q.b;
+  document.getElementById('quizResult').replaceChildren();
+  for(const c of ['A','B']){
+    const b=document.getElementById('quizButton'+c);
+    b.disabled=false;b.textContent=c+'가 AI이다';b.classList.remove('quiz-selected');
+  }
+  const next=document.getElementById('quizNext');
+  next.textContent=quizIndex===quizItems.length-1?'결과 보기 →':'다음 문제 →';
+  next.hidden=true;
+}
+function flashWrong(){
+  clearTimeout(quizFlashTimer);
+  document.body.classList.remove('quiz-wrong-flash');
+  void document.body.offsetWidth;
+  document.body.classList.add('quiz-wrong-flash');
+  quizFlashTimer=setTimeout(()=>document.body.classList.remove('quiz-wrong-flash'),950);
+}
+function launchConfetti(){
+  const colors=['#4d7a5e','#2d425f','#f2c94c','#ed6a5a','#8b80c9','#ffffff'];
+  const host=document.createElement('div');host.className='confetti-layer';
+  host.setAttribute('aria-hidden','true');
+  document.body.appendChild(host);
+  for(let i=0;i<90;i++){
+    const bit=document.createElement('i');
+    bit.style.left=(Math.random()*100)+'vw';
+    bit.style.background=colors[Math.floor(Math.random()*colors.length)];
+    bit.style.setProperty('--delay',(Math.random()*.45)+'s');
+    bit.style.setProperty('--duration',(2.1+Math.random()*1.5)+'s');
+    bit.style.setProperty('--drift',((Math.random()-.5)*180)+'px');
+    bit.style.transform='rotate('+(Math.random()*360)+'deg)';
+    host.appendChild(bit);
+  }
+  setTimeout(()=>host.remove(),4200);
+}
+function showQuizMessage(heading,description,success,showRetry){
+  const box=document.getElementById('quizResult');
+  const panel=document.createElement('div');panel.className='quiz-message '+(success?'quiz-success':'quiz-error');
+  const title=document.createElement('h3');title.textContent=heading;panel.appendChild(title);
+  const text=document.createElement('p');text.textContent=description;panel.appendChild(text);
+  if(showRetry){
+    const retry=document.createElement('button');retry.className='action secondary';
+    retry.textContent='한 번 더 선택하기 (마지막 기회)';
+    retry.onclick=()=>{box.replaceChildren();document.getElementById('quizButtonA').disabled=false;document.getElementById('quizButtonB').disabled=false;};
+    panel.appendChild(retry);
+  }
+  box.replaceChildren(panel);
+}
 function answerQuiz(choice){
   if(quizAnswered)return;
-  quizAnswered=true;
-  let q=quizItems[quizIndex],correct=choice===q.answer;
-  let d=document.createElement('div');
-  d.className='result';
-  d.innerHTML='<h3>'+(correct?'정답입니다!':'선택 완료')+'</h3><p><b>예시 정답: '+q.answer+'</b></p><p>'+q.why+'</p><p class="hint">실제 연구 데이터가 연결되면 인간·AI 글의 출처와 분석 결과를 함께 공개하도록 확장할 수 있습니다.</p>';
-  document.getElementById('quizResult').replaceChildren(d);
+  const q=quizItems[quizIndex];quizAttempts++;
+  const correct=choice===q.answer;
+  if(correct){
+    quizAnswered=true;
+    if(!quizCompleted.has(quizIndex)){quizScore++;quizCompleted.add(quizIndex);}
+    document.getElementById('quizScore').textContent='정답 '+quizScore+'개';
+    document.getElementById('quizButton'+choice).classList.add('quiz-selected');
+    showQuizMessage('정답! 🎉', 'AI가 쓴 글은 '+q.answer+'입니다. 작성 모델: '+q.model+'.'+(quizAttempts===2?' 두 번째 도전에서 맞혔어요!':''),true,false);
+    launchConfetti();
+  }else{
+    flashWrong();
+    if(quizAttempts===1){
+      document.getElementById('quizButtonA').disabled=true;
+      document.getElementById('quizButtonB').disabled=true;
+      showQuizMessage('오답입니다!', '아직 정답은 공개하지 않을게요. 같은 문제에서 한 번 더 고를 수 있습니다.',false,true);
+      return;
+    }
+    quizAnswered=true;
+    showQuizMessage('아쉽지만 오답입니다', '정답은 '+q.answer+'입니다. AI 작성 모델: '+q.model+'.',false,false);
+  }
+  document.getElementById('quizButtonA').disabled=true;
+  document.getElementById('quizButtonB').disabled=true;
+  document.getElementById('quizNext').hidden=false;
+}
+function nextQuiz(){
+  if(quizIndex===quizItems.length-1){
+    const panel=document.getElementById('quizResult');
+    document.querySelector('.quizcols').hidden=true;
+    document.getElementById('quizTopic').textContent='10문제 완료!';
+    document.getElementById('quizNext').textContent='처음부터 다시 풀기 ↻';
+    document.getElementById('quizNext').onclick=()=>{
+      document.querySelector('.quizcols').hidden=false;
+      document.getElementById('quizNext').onclick=nextQuiz;
+      resetQuiz();
+    };
+    showQuizMessage('퀴즈 종료', '10문제 중 '+quizScore+'문제를 맞혔습니다. 각 문제마다 최대 2번 선택할 수 있었습니다.',true,false);
+    return;
+  }
+  quizIndex++;renderQuiz();
+}
+function newQuiz(){nextQuiz();}
+function leaveQuiz(){
+  clearTimeout(quizFlashTimer);document.body.classList.remove('quiz-wrong-flash');goHome();
 }
 
 function parseCSV(s){
@@ -598,7 +717,7 @@ function renderTable(){
 
 function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-newQuiz();
+resetQuiz();
 drawDemo();
 </script>
 </body>
